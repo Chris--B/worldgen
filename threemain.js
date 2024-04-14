@@ -98,7 +98,7 @@ async function heightmap_transform_from_json_url(url) {
         });
 }
 
-const resolution = 100;
+const resolution = 1024;
 
 const N = 1
 var planegeo = new THREE.PlaneGeometry(N, N, resolution, resolution);
@@ -167,8 +167,11 @@ for (var i = 0; i < 1000; i++) {
 }
 ////////////////
 
-const planemat = new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide} );
-planemat.wireframe = true;
+const light = new THREE.HemisphereLight(0xffffff, 0x080820, 1);
+scene.add(light);
+
+const planemat = new THREE.MeshPhysicalMaterial( {color: 0xffffff, side: THREE.DoubleSide} );
+// planemat.wireframe = true;
 const plane = new THREE.Mesh( planegeo, planemat );
 plane.rotation.x = -Math.PI / 2;
 
