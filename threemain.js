@@ -5,6 +5,8 @@ import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
+camera.position.set(0.5, 0.5, 0);
+
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild(renderer.domElement);
@@ -33,6 +35,7 @@ function fbm(noctaves) {
     }
 }
 
+// Clamp heights to a minimum Z
 function floor(minz) {
     return function(x, y, z) {
         if (z < minz) {
@@ -40,6 +43,20 @@ function floor(minz) {
         } else {
             return z;
         }
+    }
+}
+
+// Scale heights by a constant factor
+function scale(s) {
+    return function (x, y, z) {
+        return s * z;
+    }
+}
+
+// Add/Sub to heights with a constant offset
+function offset(o) {
+    return function (x, y, z) {
+        return z + o;
     }
 }
 
@@ -54,22 +71,28 @@ function apply_heightmap_transform(geometry, transform) {
     }
 }
 
-function heightmap_from_json(url) {
+async function heightmap_transform_from_json_url(url) {
     // Loads a heightmap from a json loader endpoint and returns it as a geometry.
-    fetch(url)
+    return await fetch(url)
         .then(res => res.json())
         .then(json => {
             const xdim = json['dims']['x'];
             const ydim = json['dims']['y'];
             const hmap = json['heights'];
-            var geo = new THREE.PlaneGeometry( 1, 1, xdim, ydim );
-            var pos_attr = planegeo.getAttribute('position');
-            console.log('pos_attr.length ' + pos_attr.length);
-            console.log('xdim: ' + xdim);
-            console.log('ydim: ' + ydim);
-            for (var x = 0; x < xdim; x++) {
-                for (var y = 0; y < ydim; y++) {
-                    pos_attr[3*(x*ydim + y) + 2] = hmap[x][y];
+
+            console.log("Loaded %d x %d map", xdim, ydim);
+
+            return function transform(x, y, z) {
+                // Transform from [N, N] to (0, dim)
+                const N = 1;
+                x = Math.round(xdim * 0.5 * (x / N + 1))
+                y = Math.round(xdim * 0.5 * (y / N + 1))
+
+                if ((0 <= x && x < xdim) && (0 <= y && y < ydim)) {
+                    return hmap[y][x] / (1 << 16);
+                } else {
+                    console.log(`Out of bounds transfrom at (${x}, ${y}): Returning height of 0.`)
+                    return 0.
                 }
             }
         });
@@ -77,10 +100,17 @@ function heightmap_from_json(url) {
 
 const resolution = 100;
 
-var planegeo = new THREE.PlaneGeometry( 1, 1, resolution, resolution );
-var noise = fbm(5);
-apply_heightmap_transform(planegeo, noise);
+const N = 1
+var planegeo = new THREE.PlaneGeometry(N, N, resolution, resolution);
+var heightmap = await heightmap_transform_from_json_url("height.json");
+
+// var noise = fbm(5);
+// apply_heightmap_transform(planegeo, noise);
+apply_heightmap_transform(planegeo, heightmap);
+apply_heightmap_transform(planegeo, scale(0.25));
+apply_heightmap_transform(planegeo, offset(-0.10));
 apply_heightmap_transform(planegeo, floor(0));
+
 planegeo.computeVertexNormals();
 
 ////////////////
