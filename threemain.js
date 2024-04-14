@@ -2,14 +2,17 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createNoise2D } from 'simplex-noise';
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
-camera.position.set(0.5, 0.5, 0);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild(renderer.domElement);
+
+document.body.appendChild(VRButton.createButton(renderer));
+renderer.xr.enabled = true;
 
 const controls = new OrbitControls( camera, renderer.domElement );
 
@@ -182,9 +185,8 @@ scene.add( plane );
 
 camera.position.z = 1;
 
-function animate() {
-	requestAnimationFrame( animate );
+// Need animation loop for XR
+renderer.setAnimationLoop(function () {
+    renderer.render(scene, camera);
     controls.update();
-	renderer.render( scene, camera );
-}
-animate();
+});
