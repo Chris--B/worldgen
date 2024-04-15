@@ -4,6 +4,8 @@ import { createNoise2D } from 'simplex-noise';
 import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
+async function main() {
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
 
@@ -190,3 +192,7 @@ renderer.setAnimationLoop(function () {
     renderer.render(scene, camera);
     controls.update();
 });
+
+}
+
+main()
