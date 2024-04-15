@@ -112,8 +112,8 @@ var heightmap = await heightmap_transform_from_json_url("height.json");
 // var noise = fbm(5);
 // apply_heightmap_transform(planegeo, noise);
 apply_heightmap_transform(planegeo, heightmap);
-apply_heightmap_transform(planegeo, scale(0.25));
-apply_heightmap_transform(planegeo, offset(-0.10));
+// apply_heightmap_transform(planegeo, offset(-0.50));
+apply_heightmap_transform(planegeo, scale(0.5));
 apply_heightmap_transform(planegeo, floor(0));
 
 planegeo.computeVertexNormals();
